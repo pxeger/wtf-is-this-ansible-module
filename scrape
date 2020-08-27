@@ -1,0 +1,40 @@
+#!/bin/sh
+# requirements: git, coreutils, curl, jq
+
+
+tempdir="$(mktemp -d)"
+cd "$tempdir" >&2
+
+git clone https://github.com/ansible-community/ansible-build-data.git >&2
+
+cd ansible-build-data >&2
+
+# "fuck semver and PEP 440 amirite; let's just use our own bullshit versioning scheme" - ansible devs
+# so we have to resort to getting the most recently modified version instead >:[
+latest_major_version=$(
+	ls -Ft | grep -E '^([0-9]+\.)+[0-9]+/$' | head -1
+)
+
+needs_comma=
+echo -n '['
+
+while read collection; do
+	# output comma if there was something before
+	test $needs_comma >&2 && echo -n ','
+	needs_comma=1
+
+	# split
+	namespace=$(echo "$collection" | cut -d. -f1)
+	name=$(echo "$collection" | cut -d. -f2)
+	
+	# download
+	curl -H "Accept: application/json" "https://galaxy.ansible.com/api/internal/ui/repo-or-collection-detail/?namespace=$namespace&name=$name" \
+		| jq -jc --arg collection "$collection" '{contents: .data.collection.latest_version.contents, collection: $collection}'
+
+done < "$latest_major_version"/acd.in
+
+echo -n ']'
+
+cd / >&2
+rm -rf "$tempdir" >&2
+
