@@ -19,7 +19,7 @@ latest_major_version=$(
 needs_comma=
 echo '['
 
-while read collection; do
+grep -v '#' "$latest_major_version"/acd.in | while read collection; do
 	# output comma if there was something before
 	test $needs_comma >&2 && echo ','
 	needs_comma=1
@@ -33,7 +33,7 @@ while read collection; do
 	curl -H "Accept: application/json" "https://galaxy.ansible.com/api/internal/ui/repo-or-collection-detail/?namespace=$namespace&name=$name" \
 		| jq --arg collection "$collection" '[.data.collection.latest_version.contents[] | . + {collection: $collection}]'
 
-done < "$latest_major_version"/acd.in
+done
 
 echo ']'
 ) | jq 'add'  # convert [[item, ...], [item, ...], ...] to [item, item, item, ...]
