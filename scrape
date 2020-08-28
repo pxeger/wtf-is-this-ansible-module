@@ -15,12 +15,13 @@ latest_major_version=$(
 	ls -Ft | grep -E '^([0-9]+\.)+[0-9]+/$' | head -1
 )
 
+(
 needs_comma=
-echo -n '['
+echo '['
 
 while read collection; do
 	# output comma if there was something before
-	test $needs_comma >&2 && echo -n ','
+	test $needs_comma >&2 && echo ','
 	needs_comma=1
 
 	# split
@@ -28,13 +29,14 @@ while read collection; do
 	name=$(echo "$collection" | cut -d. -f2)
 	
 	# download
+	# there seems to be a pretty strict rate limit so you can only do this whole loop every few hours or something
 	curl -H "Accept: application/json" "https://galaxy.ansible.com/api/internal/ui/repo-or-collection-detail/?namespace=$namespace&name=$name" \
-		| jq -jc --arg collection "$collection" '{contents: .data.collection.latest_version.contents, collection: $collection}'
+		| jq --arg collection "$collection" '[.data.collection.latest_version.contents[] | . + {collection: $collection}]'
 
 done < "$latest_major_version"/acd.in
 
-echo -n ']'
+echo ']'
+) | jq 'add'  # convert [[item, ...], [item, ...], ...] to [item, item, item, ...]
 
 cd / >&2
 rm -rf "$tempdir" >&2
-
