@@ -55,7 +55,6 @@
 <script>
 	import data from '../output.json';
 	import Fuse from 'fuse.js';
-import { title } from 'process';
 
 	// generate random placeholder
 	const choose = array => array[Math.floor(Math.random() * array.length)];
