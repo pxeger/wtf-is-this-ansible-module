@@ -98,7 +98,7 @@ responsibility for it. Use at your own risk!`
 </script>
 
 <main>
-	<h1>"WTF is this Ansible module?"</h1>
+	<h1>"WTF is this Ansible module!?"</h1>
 	<p>
 		With the move to collections in Ansible 2.10, development of the most common modules included by default with
 		older versions has moved to separate GitHub repositories (mostly under the <code>ansible-collections</code>
